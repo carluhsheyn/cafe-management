@@ -69,4 +69,32 @@ router.patch('/update-status', auth.authenticateToken, checkRole.checkRole,  (re
   })
 })
 
+router.get('/check-token', auth.authenticateToken, (req, res) => {
+    return res.status(200).json({message: "true"});
+})
+
+router.post('/change-password', auth.authenticateToken, (req, res) => {
+  const user = req.body;
+  const email = res.locals.email;
+  var query = "select * from users where email = ? and password = ?";
+
+  connection.query(query, [email, user.oldPassword], (err, results) => {
+    if(!err) {
+      if(results.length <= 0) {
+        return res.status(400).json({message: "Incorrect old password."})
+      } else if (results[0].password == user.oldPassword) {
+        query = "update users set password = ? where email = ?";
+        connection.query(query, [user.newPassword, email], (err, results) => {
+          console.log('ELSE IF');
+          
+          return !err ? res.status(200).json({message: "Password updated successfully."}) : res.status(500).json(err)
+        })
+      } else {
+        return res.status(400).json({message: "Something went wrong. Please try again later."});
+      }
+    } else {
+      return res.status(500).json(err);
+    }
+  })
+})
 module.exports = router;
