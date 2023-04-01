@@ -52,7 +52,6 @@ router.post('/login', (req, res) => {
   })
 })
 
-
 // get user details
 router.get('/get', auth.authenticateToken, checkRole.checkRole, (req, res) => {
   var query = "select * from users where role = 'user'";
@@ -60,4 +59,14 @@ router.get('/get', auth.authenticateToken, checkRole.checkRole, (req, res) => {
     return err ? res.status(500).json(err) : res.status(200).json(result);
   })
 })
+
+// update user status
+router.patch('/update-status', auth.authenticateToken, checkRole.checkRole,  (req, res) => {
+  const user = req.body;
+  var query = "update users set status = ? where id = ?";
+  connection.query(query, [user.status, user.id], (err, result) => {
+    return (result.affected === 0) ? res.status(404).json({message: "User id does not exist."}) : res.status(200).json({message: "User status updated successfully."});
+  })
+})
+
 module.exports = router;
